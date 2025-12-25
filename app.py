@@ -205,6 +205,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
+    # // Parse payload and update shared state
     try:
         payload = json.loads(msg.payload.decode())
         now = datetime.utcnow().isoformat()
