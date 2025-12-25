@@ -51,6 +51,9 @@ if not DATABASE_URL:
     raise RuntimeError("❌ DATABASE_URL tidak ditemukan. Pastikan env var sudah diset.")
 
 print("DATABASE_URL =", DATABASE_URL)
+print("MQTT_BROKER =", MQTT_BROKER)
+print("MQTT_PORT =", MQTT_PORT)
+
 
 TOPIC_ANEMO = "pcb01/status/anemometer"
 TOPIC_RAIN = "pcb01/status/rain"
