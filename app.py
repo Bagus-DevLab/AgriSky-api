@@ -45,7 +45,12 @@ MQTT_PASS = os.getenv("MQTT_PASS")
 MQTT_CLIENT_ID = os.getenv("MQTT_CLIENT_ID", "weather-api")
 MQTT_TLS = os.getenv("MQTT_TLS", "false").lower() == "true"
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("❌ DATABASE_URL tidak ditemukan. Pastikan env var sudah diset.")
+
+print("DATABASE_URL =", DATABASE_URL)
 
 TOPIC_ANEMO = "pcb01/status/anemometer"
 TOPIC_RAIN = "pcb01/status/rain"
