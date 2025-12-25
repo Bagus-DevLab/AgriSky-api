@@ -1,0 +1,70 @@
+# ============================
+# PYTHON
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+coverage.json
+coverage.xml
+*.cover
+*.py,cover
+.cache
+nosetests.xml
+
+# VSCode / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter notebook
+.ipynb_checkpoints/
+
+# Local config
+.env
+.env.*
+*.env
+
+# Byte-compiled, compiled or optimized files
+*.pyc
+
+# MyPy / Pyright
+.mypy_cache/
+.pyright/
+dmypy.json
+
+# ============================
+# FASTAPI
+# ============================
+
+# Uvicorn access logs
+*.log
+
+# ============================
+# Optional: Ignore generated certs (kalau pakai TLS ke MQTT)
+# ============================
+certs/
+*.crt
+*.key
+*.pem
