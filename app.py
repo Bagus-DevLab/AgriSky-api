@@ -186,34 +186,47 @@ def save_to_db(data_type: str, payload: dict) -> None:
 # ======================================================
 # MQTT
 # ======================================================
-mqtt_client = mqtt.Client(client_id=MQTT_CLIENT_ID)
+mqtt_connected = False
+
+mqtt_client = mqtt.Client(
+    client_id=MQTT_CLIENT_ID,
+    clean_session=True,
+)
 
 if MQTT_USER and MQTT_PASS:
     mqtt_client.username_pw_set(MQTT_USER, MQTT_PASS)
 
-if MQTT_TLS:
+# TLS WAJIB UNTUK 8883
+if MQTT_PORT == 8883:
     mqtt_client.tls_set(
         cert_reqs=ssl.CERT_REQUIRED,
         tls_version=ssl.PROTOCOL_TLS_CLIENT,
     )
+    mqtt_client.tls_insecure_set(False)
 
 
 def on_connect(client, userdata, flags, rc):
+    global mqtt_connected
     if rc == 0:
-        logger.info("MQTT connected")
-        client.subscribe(
-            [
-                (TOPIC_ANEMO, 0),
-                (TOPIC_RAIN, 0),
-                (TOPIC_DHT, 0),
-            ]
-        )
+        mqtt_connected = True
+        logger.info("✅ MQTT connected")
+        client.subscribe([
+            (TOPIC_ANEMO, 0),
+            (TOPIC_RAIN, 0),
+            (TOPIC_DHT, 0),
+        ])
     else:
-        logger.error("MQTT connection failed: %s", rc)
+        mqtt_connected = False
+        logger.error("❌ MQTT connect failed rc=%s", rc)
+
+
+def on_disconnect(client, userdata, rc):
+    global mqtt_connected
+    mqtt_connected = False
+    logger.warning("⚠ MQTT disconnected rc=%s", rc)
 
 
 def on_message(client, userdata, msg):
-    # // Parse payload and update shared state
     try:
         payload = json.loads(msg.payload.decode())
         now = datetime.utcnow().isoformat()
@@ -239,15 +252,23 @@ def on_message(client, userdata, msg):
 
 
 mqtt_client.on_connect = on_connect
+mqtt_client.on_disconnect = on_disconnect
 mqtt_client.on_message = on_message
 
 
 def mqtt_loop():
-    try:
-        mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
-        mqtt_client.loop_forever()
-    except Exception as e:
-        logger.error("MQTT loop error: %s", e)
+    while True:
+        try:
+            logger.info("🔌 Connecting to MQTT broker...")
+            mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
+            mqtt_client.loop_forever()
+        except Exception as e:
+            logger.error("MQTT error: %s", e)
+            mqtt_connected = False
+            logger.info("🔁 Retry MQTT in 5 seconds...")
+            import time
+            time.sleep(5)
+
 
 
 # ======================================================
@@ -255,13 +276,13 @@ def mqtt_loop():
 # ======================================================
 @app.on_event("startup")
 def startup_event():
-    logger.info("Starting MQTT thread")
+    logger.info("🚀 Starting MQTT background thread")
     threading.Thread(target=mqtt_loop, daemon=True).start()
 
 
 @app.on_event("shutdown")
 def shutdown_event():
-    logger.info("Stopping MQTT client")
+    logger.info("🛑 Stopping MQTT")
     mqtt_client.disconnect()
 
 
@@ -304,9 +325,10 @@ def health():
         db_ok = False
 
     return {
-        "mqtt_connected": mqtt_client.is_connected(),
+        "mqtt_connected": mqtt_connected,
         "database_connected": db_ok,
     }
+
 
 
 if __name__ == "__main__":
