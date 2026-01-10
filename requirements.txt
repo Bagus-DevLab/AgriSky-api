@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+paho-mqtt
+scikit-learn
+pandas
+numpy
+mysql-connector-python
+requests

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # --- Service 1: Database (MySQL) ---
+  db:
+    image: mysql:8.0
+    container_name: iot_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: iot_weather_db  # Nama database
+      MYSQL_ROOT_PASSWORD: rootpassword # Password root
+    ports:
+      - "3306:3306" # Expose ke laptopmu (agar bisa dicek via DBeaver/HeidiSQL)
+    volumes:
+      - db_data:/var/lib/mysql # Agar data tidak hilang saat container mati
+
+  # --- Service 2: Python (FastAPI + ML) ---
+  python_app:
+    build: .
+    container_name: iot_python_backend
+    restart: always
+    depends_on:
+      - db # Tunggu database siap dulu (secara urutan start)
+    ports:
+      - "8000:8000" # Akses FastAPI di localhost:8000
+    volumes:
+      - .:/app # Sync codingan: Edit di laptop, langsung berubah di container
+    environment:
+      # Konfigurasi DB untuk Python (sesuai service 'db' di atas)
+      DB_HOST: db 
+      DB_USER: root
+      DB_PASS: rootpassword
+      DB_NAME: iot_weather_db
+
+volumes:
+  db_data:
