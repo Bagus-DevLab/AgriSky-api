@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.services.mqtt_listener import start_mqtt_loop
 from app.database import init_db
-from app.database import get_latest_weather
+from app.database import get_latest_weather, get_weather_history
 
 # --- LIFESPAN (Gaya Baru Pengganti Startup/Shutdown) ---
 @asynccontextmanager
@@ -61,3 +61,19 @@ def api_current_water():
             "status": "error",
             "message": str(e)
         }
+        
+@app.get("/api/weather/history")
+def api_weather_history(limit: int = 5):
+    """
+    Mengambil data history. 
+    Bisa request jumlah data, misal: /api/weather/history?limit=10
+    """
+    try:
+        data = get_weather_history(limit)
+        return {
+            "status": "success",
+            "count": len(data),
+            "data": data
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

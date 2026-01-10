@@ -97,3 +97,23 @@ def get_latest_weather():
     cursor.close()
     conn.close()
     return result
+
+# ... kode sebelumnya ...
+
+def get_weather_history(limit=10):
+    """Mengambil riwayat data cuaca terbaru (default 10 data)"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True) # Agar outputnya berupa JSON object
+    
+    # Ambil data diurutkan dari yang paling baru
+    sql = """
+        SELECT * FROM weather_logs 
+        ORDER BY created_at DESC 
+        LIMIT %s
+    """
+    cursor.execute(sql, (limit,))
+    results = cursor.fetchall() # fetchall = ambil semua hasil
+    
+    cursor.close()
+    conn.close()
+    return results
