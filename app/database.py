@@ -78,3 +78,22 @@ def save_weather_log(data):
         conn.close()
     except Exception as e:
         print(f"[DB Error] Gagal simpan: {e}")
+        
+# ... import lainnya
+# Tambahkan fungsi ini di paling bawah
+
+def get_latest_weather():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True) # Dictionary=True agar hasil outputnya JSON friendly
+    
+    sql = """
+        SELECT * FROM weather_logs 
+        ORDER BY created_at DESC 
+        LIMIT 1
+    """
+    cursor.execute(sql)
+    result = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    return result
