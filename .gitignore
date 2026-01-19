@@ -33,9 +33,9 @@ Thumbs.db
 
 # --- Database ---
 # Jika ada file dump atau sqlite
-*.sqlite3
-*.db
-*.sql
+# *.sqlite3
+# *.db
+# *.sql
 
 # --- Byte-compiled / Optimized / DLL files ---
 *.so

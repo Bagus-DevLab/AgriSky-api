@@ -7,12 +7,20 @@ services:
     container_name: iot_mysql
     restart: always
     environment:
-      MYSQL_DATABASE: iot_weather_db  # Nama database
-      MYSQL_ROOT_PASSWORD: rootpassword # Password root
+      # Pastikan nama DB ini SAMA dengan yang ada di dalam script SQL
+      # Jika di SQL ada perintah "CREATE DATABASE x", variabel ini bisa diabaikan
+      MYSQL_DATABASE: weather_logs 
+      MYSQL_ROOT_PASSWORD: kisamadesu21112 
     ports:
-      - "3306:3306" # Expose ke laptopmu (agar bisa dicek via DBeaver/HeidiSQL)
+      # PENTING UNTUK VPS:
+      # Menggunakan 127.0.0.1 agar database TIDAK terekspos ke internet publik.
+      # Hanya bisa diakses dari dalam VPS atau via SSH Tunnel.
+      - "127.0.0.1:3306:3306"
     volumes:
-      - db_data:/var/lib/mysql # Agar data tidak hilang saat container mati
+      - db_data:/var/lib/mysql
+      # MAGIC HAPPENS HERE:
+      # File SQL Anda akan otomatis dieksekusi saat container pertama kali dibuat
+      - ./backup_database.sql:/docker-entrypoint-initdb.d/init.sql
 
   # --- Service 2: Python (FastAPI + ML) ---
   python_app:
@@ -20,17 +28,18 @@ services:
     container_name: iot_python_backend
     restart: always
     depends_on:
-      - db # Tunggu database siap dulu (secara urutan start)
+      - db
     ports:
-      - "8000:8000" # Akses FastAPI di localhost:8000
+      - "8002:8000" # Aplikasi bisa diakses publik via IP_VPS:8000
     volumes:
-      - .:/app # Sync codingan: Edit di laptop, langsung berubah di container
+      # Untuk production murni, sebaiknya COPY code di Dockerfile.
+      # Tapi volume ini oke jika Anda ingin update code di VPS tanpa rebuild image.
+      - .:/app
     environment:
-      # Konfigurasi DB untuk Python (sesuai service 'db' di atas)
-      DB_HOST: db 
+      DB_HOST: db
       DB_USER: root
-      DB_PASS: rootpassword
-      DB_NAME: iot_weather_db
+      DB_PASS: kisamadesu21112
+      DB_NAME: weather_logs
 
 volumes:
   db_data:
